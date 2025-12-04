@@ -1,0 +1,34 @@
+Main ISIL_A;
+Section Variables
+%% Declaration
+x, y, z : Integer;
+total : Float;
+
+Section Code
+Start
+{ %% Partie instructions
+   x := 10;
+   y := 3;
+   z := x * y + 5;
+
+
+   if (x < y and x >= 20){
+      y := z ;
+      z := x + 5;
+   }else{
+      x := y + z;
+   }
+   endif;
+
+      for x from 1 to 10 step 1 { x := 5 ; }
+      
+   do {
+      x := 5;
+      } while ( x < 5);
+
+
+   total := (x + y + z) / 2.5;
+   print("fin de calcul");
+   %%Fin du calcul 
+}
+Stop
