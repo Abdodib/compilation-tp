@@ -39,47 +39,60 @@
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     INT = 258,
-     FLT = 259,
-     START = 260,
-     STOP = 261,
-     MAIN = 262,
-     SEC_C = 263,
-     SEC_V = 264,
-     ACC_OU = 265,
-     ACC_FE = 266,
-     PAR_OU = 267,
-     PAR_FE = 268,
-     ASSIGN_OP = 269,
-     DEUX_POINTS = 270,
-     VRG = 271,
-     PVRG = 272,
-     OR = 273,
-     AND = 274,
-     CONDITION_OP = 275,
-     OP = 276,
-     IDF = 277,
-     CONSTANTE = 278,
-     NOT = 279,
-     PRINT = 280,
-     STRING = 281,
-     IF = 282,
-     ELSE = 283,
-     ENDIF = 284,
-     DO = 285,
-     WHILE = 286,
-     FOR = 287,
-     STEP = 288,
-     FROM = 289,
-     TO = 290,
-     ERREUR_LEXICAL = 291
+     IDF = 258,
+     STRING = 259,
+     OP = 260,
+     CONSTANTE = 261,
+     INT = 262,
+     FLT = 263,
+     ERREUR_LEXICAL = 264,
+     START = 265,
+     STOP = 266,
+     MAIN = 267,
+     SEC_C = 268,
+     SEC_V = 269,
+     ACC_OU = 270,
+     ACC_FE = 271,
+     PAR_OU = 272,
+     PAR_FE = 273,
+     ASSIGN_OP = 274,
+     DEUX_POINTS = 275,
+     VRG = 276,
+     PVRG = 277,
+     OR = 278,
+     AND = 279,
+     CONDITION_OP = 280,
+     NOT = 281,
+     PRINT = 282,
+     IF = 283,
+     ELSE = 284,
+     ENDIF = 285,
+     DO = 286,
+     WHILE = 287,
+     FOR = 288,
+     STEP = 289,
+     FROM = 290,
+     TO = 291
    };
 #endif
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
+typedef union YYSTYPE
+{
+
+/* Line 1676 of yacc.c  */
+#line 23 "run.y"
+
+    char *sval;
+    double dval;
+
+
+
+/* Line 1676 of yacc.c  */
+#line 95 "run.tab.h"
+} YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

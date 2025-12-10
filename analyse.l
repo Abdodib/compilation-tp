@@ -1,45 +1,28 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "run.tab.h"
-#include "ts.h"
-int nb_ligne = 1;
-TS table; // racine de la table des symboles
+
+extern int nb_ligne;
 %}
 
-chiffre         [0-9]
-IDF             [a-zA-Z]([a-zA-Z0-9_])*
-cst             {chiffre}+(\.{chiffre}+)? 
-operateur       [\+\-\*/]
-comnts          "%%".*
-operation       ({IDF}[ \t]*":="[ \t]*.*";")
+DIGIT       [0-9]
+ID          [a-zA-Z]([a-zA-Z0-9_])*
+CST         {DIGIT}+(\.{DIGIT}+)?
+OP          [\+\-\*/]
+COMMENT     "%%".*
+STRING      \"([^"\n]*)\"
 
 %%
 
-"Integer"               { inserer(yytext,"TYPE",&table); return INT; }  
-"Float"                 { inserer(yytext,"TYPE",&table); return FLT; }
+"Integer"               { yylval.sval = strdup("INTEGER"); return INT; }
+"Float"                 { yylval.sval = strdup("FLOAT"); return FLT; }
 "Start"                 { return START; }
 "Stop"                  { return STOP; }
 "Main"                  { return MAIN; }
-"Section Code"          { return SEC_C; }
-"Section Variables"     { return SEC_V; }
-
-("=="|"!="|"<="|">="|"<"|">")  { return CONDITION_OP; }
-"!"                     { return NOT; }
-"{"                     { return ACC_OU; }
-"}"                     { return ACC_FE; }
-":="                    { return ASSIGN_OP; }
-":"                     { return DEUX_POINTS; }
-","                     { return VRG; }
-";"                     { return PVRG; }
-"("                     { return PAR_OU; }
-")"                     { return PAR_FE; }
-
-{operateur}             { return OP; }
-{operation}             ;
-{cst}                   { inserer(yytext,"CONST",&table); return CONSTANTE; }
-{comnts}                ;
-[ \t\r]+                ;
-
+"Section Code"   { return SEC_C; }        
+"Section Variables" { return SEC_V; } 
 "if"                    { return IF; }
 "else"                  { return ELSE; }
 "or"                    { return OR; }
@@ -52,14 +35,39 @@ operation       ({IDF}[ \t]*":="[ \t]*.*";")
 "to"                    { return TO; }
 "step"                  { return STEP; }
 "print"                 { return PRINT; }
-
-\"([^\"]*)\"            { inserer(yytext,"STRING",&table); return STRING; }
-
-{IDF}                   { inserer(yytext,"IDF",&table); return IDF; }
-
+"=="                    { return CONDITION_OP; }
+"!="                    { return CONDITION_OP; }
+"<="                    { return CONDITION_OP; }
+">="                    { return CONDITION_OP; }
+"<"                     { return CONDITION_OP; }
+">"                     { return CONDITION_OP; }
+"!"                     { return NOT; }
+"{"                     { return ACC_OU; }
+"}"                     { return ACC_FE; }
+":="                    { return ASSIGN_OP; }
+":"                     { return DEUX_POINTS; }
+","                     { return VRG; }
+";"                     { return PVRG; }
+"("                     { return PAR_OU; }
+")"                     { return PAR_FE; }
+{OP}                    { yylval.sval = strdup(yytext); return OP; }
+{CST}                   { yylval.dval = atof(yytext); yylval.sval = strdup(yytext); return CONSTANTE; }
+{STRING}                { /* remove quotes */ 
+                            char *s = strdup(yytext);
+                            int len = strlen(s);
+                            if (len >= 2) {
+                                s[len-1] = '\0';
+                                memmove(s, s+1, len-1);
+                            }
+                            yylval.sval = s;
+                            return STRING;
+                        }
+{ID}                    { yylval.sval = strdup(yytext); return IDF; }
+{COMMENT}               { /* ignore comment */ }
+[ \t\r]+                { /* ignore */ }
 \n                      { nb_ligne++; }
 .                       { return ERREUR_LEXICAL; }
 
 %%
 
-int yywrap() { return 1; }
+int yywrap(void) { return 1; }

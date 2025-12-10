@@ -1,18 +1,29 @@
 #ifndef TS_H
 #define TS_H
 
-typedef struct {
-    char nomEntite[20];
-    char code[20];
-} TS1;
+#define NAME_LEN 64
+#define CODE_LEN 32
+#define TYPE_LEN 16
+#define VAL_LEN 64
 
-typedef struct TS {
-    TS1 data;
-    struct TS *next;
-} TS;
+typedef struct Symbol {
+    char name[NAME_LEN];
+    char code[CODE_LEN];   // e.g. "IDF", "CONST", "TYPE", "STRING"
+    char type[TYPE_LEN];   // "INTEGER", "FLOAT", "" if unknown
+    char value[VAL_LEN];   // optional literal value as string
+    struct Symbol *next;
+} Symbol;
 
-int recherche(char entite[], TS* head);
-void inserer(char entite[], char code[], TS* head);
-void afficher(TS* head);
+typedef Symbol TS;
+
+TS* ts_create();
+Symbol* ts_find(const char *name, TS* head);
+int ts_insert_symbol(const char *name, const char *code, const char *type, const char *value, TS* head);
+/* convenience wrappers */
+int ts_insert_var_with_type(const char *name, const char *type, TS* head);
+int ts_insert_const(const char *value, const char *type, TS* head);
+
+void ts_print(TS* head);
+void ts_free(TS* head);
 
 #endif

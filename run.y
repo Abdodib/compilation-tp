@@ -1,33 +1,52 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "ts.h"       
-#include "run.tab.h"
+#include <string.h>
+#include "ts.h"
 
+int nb_ligne = 1;
+TS* table;
+
+/* temp storage for liste_idf during a declaration */
+char *liste_temp[256];
+int nb_temp = 0;
+
+void free_temp_list() {
+    for (int i=0;i<nb_temp;i++) free(liste_temp[i]);
+    nb_temp = 0;
+}
+
+int yyerror(const char *s);
 int yylex(void);
-int yyerror(char* msg);
-extern int nb_ligne;
-extern TS table;     
 %}
 
-%start main_program
+%union {
+    char *sval;
+    double dval;
+}
 
-%token INT FLT START STOP MAIN SEC_C SEC_V
+%token <sval> IDF STRING OP
+%token <dval> CONSTANTE
+%token <sval> INT FLT
+%token ERREUR_LEXICAL
+%token START STOP MAIN SEC_C SEC_V
 %token ACC_OU ACC_FE PAR_OU PAR_FE ASSIGN_OP DEUX_POINTS VRG PVRG
 %token OR AND CONDITION_OP
-%token OP IDF CONSTANTE NOT PRINT STRING
-%token IF ELSE ENDIF
-%token DO WHILE FOR STEP
-%token FROM TO
-%token ERREUR_LEXICAL
+%token NOT PRINT
+%token IF ELSE ENDIF DO WHILE FOR STEP FROM TO
+%type <sval> type
+%type <sval> liste_idf
+
+%start main_program
 
 %%
 
 main_program:
       MAIN IDF PVRG section_variables section_code {
-            printf("syntaxe correcte\n");
-            afficher(&table); // afficher la table des symboles
-            YYACCEPT;
+          printf("syntaxe correcte\n");
+          ts_print(table);
+          ts_free(table);
+          YYACCEPT;
       }
 ;
 
@@ -36,22 +55,34 @@ section_variables:
 ;
 
 liste_declarations:
-      declaration
+      /* empty */ 
     | liste_declarations declaration
 ;
 
 declaration:
       liste_idf DEUX_POINTS type PVRG
+      {
+          /* $1 is built via side effects into liste_temp[] */
+          for (int i=0; i<nb_temp; i++) {
+              if (ts_find(liste_temp[i], table)) {
+                  printf("Erreur semantique (ligne %d): double déclaration de %s\n", nb_ligne, liste_temp[i]);
+              } else {
+                  ts_insert_var_with_type(liste_temp[i], $3, table);
+              }
+          }
+          free_temp_list();
+          free($3);
+      }
 ;
 
 liste_idf:
-      IDF
-    | liste_idf VRG IDF
+      IDF { liste_temp[nb_temp++] = $1; }
+    | liste_idf VRG IDF { liste_temp[nb_temp++] = $3; }
 ;
 
 type:
-      INT
-    | FLT
+      INT { $$ = $1; }
+    | FLT { $$ = $1; }
 ;
 
 section_code:
@@ -59,7 +90,7 @@ section_code:
 ;
 
 liste_instructions:
-      /* vide */
+      /* empty */
     | instruction liste_instructions
 ;
 
@@ -81,6 +112,12 @@ if_exprission:
 FOR_boucle:
       FOR IDF FROM CONSTANTE TO CONSTANTE STEP CONSTANTE
       ACC_OU liste_instructions ACC_FE
+      {
+        /* simple check: variable must be declared */
+        if (!ts_find($2, table)) {
+            printf("Erreur semantique (ligne %d): %s non déclarée dans FOR\n", nb_ligne, $2);
+        }
+      }
 ;
 
 DOWHILE_boucle:
@@ -103,7 +140,18 @@ EXPR:
 
 EXPRESSION:
       IDF ASSIGN_OP EXPR
+      {
+          /* check ID declared */
+          if (!ts_find($1, table)) {
+              printf("Erreur semantique (ligne %d): %s non déclarée\n", nb_ligne, $1);
+          }
+      }
     | IDF CONDITION_OP EXPR
+      {
+          if (!ts_find($1, table)) {
+              printf("Erreur semantique (ligne %d): %s non déclarée\n", nb_ligne, $1);
+          }
+      }
 ;
 
 fonction_appel:
@@ -113,12 +161,13 @@ fonction_appel:
 
 %%
 
-int main(void) {
-    yyparse();
-    return 0;
+int yyerror(const char *s) {
+    printf("Erreur syntaxique à la ligne %d: %s\n", nb_ligne, s);
+    return 1;
 }
 
-int yyerror(char* msg) {
-    printf("Erreur syntaxique à la ligne %d\n", nb_ligne);
-    return 1;
+int main(void) {
+    table = ts_create();
+    yyparse();
+    return 0;
 }
