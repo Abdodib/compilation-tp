@@ -8,9 +8,9 @@
 
 typedef struct Symbol {
     char name[NAME_LEN];
-    char code[CODE_LEN];   // e.g. "IDF", "CONST", "TYPE", "STRING"
-    char type[TYPE_LEN];   // "INTEGER", "FLOAT", "" if unknown
-    char value[VAL_LEN];   // optional literal value as string
+    char code[CODE_LEN];   
+    char type[TYPE_LEN];  
+    char value[VAL_LEN];   
     struct Symbol *next;
 } Symbol;
 
@@ -19,7 +19,6 @@ typedef Symbol TS;
 TS* ts_create();
 Symbol* ts_find(const char *name, TS* head);
 int ts_insert_symbol(const char *name, const char *code, const char *type, const char *value, TS* head);
-/* convenience wrappers */
 int ts_insert_var_with_type(const char *name, const char *type, TS* head);
 int ts_insert_const(const char *value, const char *type, TS* head);
 

@@ -52,7 +52,7 @@ STRING      \"([^"\n]*)\"
 ")"                     { return PAR_FE; }
 {OP}                    { yylval.sval = strdup(yytext); return OP; }
 {CST}                   { yylval.dval = atof(yytext); yylval.sval = strdup(yytext); return CONSTANTE; }
-{STRING}                { /* remove quotes */ 
+{STRING}                { 
                             char *s = strdup(yytext);
                             int len = strlen(s);
                             if (len >= 2) {
@@ -63,8 +63,8 @@ STRING      \"([^"\n]*)\"
                             return STRING;
                         }
 {ID}                    { yylval.sval = strdup(yytext); return IDF; }
-{COMMENT}               { /* ignore comment */ }
-[ \t\r]+                { /* ignore */ }
+{COMMENT}             
+[ \t\r]+               
 \n                      { nb_ligne++; }
 .                       { return ERREUR_LEXICAL; }
 

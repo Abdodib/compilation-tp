@@ -7,7 +7,6 @@
 int nb_ligne = 1;
 TS* table;
 
-/* temp storage for liste_idf during a declaration */
 char *liste_temp[256];
 int nb_temp = 0;
 
@@ -55,14 +54,13 @@ section_variables:
 ;
 
 liste_declarations:
-      /* empty */ 
+
     | liste_declarations declaration
 ;
 
 declaration:
       liste_idf DEUX_POINTS type PVRG
       {
-          /* $1 is built via side effects into liste_temp[] */
           for (int i=0; i<nb_temp; i++) {
               if (ts_find(liste_temp[i], table)) {
                   printf("Erreur semantique (ligne %d): double déclaration de %s\n", nb_ligne, liste_temp[i]);
@@ -90,7 +88,6 @@ section_code:
 ;
 
 liste_instructions:
-      /* empty */
     | instruction liste_instructions
 ;
 
@@ -113,7 +110,6 @@ FOR_boucle:
       FOR IDF FROM CONSTANTE TO CONSTANTE STEP CONSTANTE
       ACC_OU liste_instructions ACC_FE
       {
-        /* simple check: variable must be declared */
         if (!ts_find($2, table)) {
             printf("Erreur semantique (ligne %d): %s non déclarée dans FOR\n", nb_ligne, $2);
         }
@@ -141,7 +137,6 @@ EXPR:
 EXPRESSION:
       IDF ASSIGN_OP EXPR
       {
-          /* check ID declared */
           if (!ts_find($1, table)) {
               printf("Erreur semantique (ligne %d): %s non déclarée\n", nb_ligne, $1);
           }
